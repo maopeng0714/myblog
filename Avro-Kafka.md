@@ -18,17 +18,20 @@ We think Avro is the best choice for a number of reasons:
 - It has the best notion of compatibility for evolving your data over time.
 
 One of the critical features of Avro is the ability to define a schema for your data. For example an event that represents the sale of a product might look like this:
-'{
+```
+{
   "time": 1424849130111,
   "customer_id": 1234,
   "product_id": 5678,
   "quantity":3,
   "payment_type": "mastercard"
-}'
+}
+```
 
 It might have a schema like this that defines these five fields:
 
-'{
+```
+{
   "type": "record",
   "doc":"This event records the sale of a product",
   "name": "ProductSaleEvent",
@@ -43,7 +46,8 @@ It might have a schema like this that defines these five fields:
              "symbols":["cash","mastercard","visa"]},
      "doc":"The method of payment"}
   ]
-}'
+}
+```
 
 A real event, of course, would probably have more fields and hopefully better doc strings, but this gives their flavor.
 
