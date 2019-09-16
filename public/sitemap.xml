@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>https://maopeng0714.github.io/posts/kanban/</loc>
+    <lastmod>2019-09-16T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://maopeng0714.github.io/</loc>
+    <lastmod>2019-09-16T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://maopeng0714.github.io/posts/</loc>
+    <lastmod>2019-09-16T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://maopeng0714.github.io/posts/avro-kafka/</loc>
+    <lastmod>2019-09-12T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://maopeng0714.github.io/about/</loc>
+    <lastmod>2019-01-25T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://maopeng0714.github.io/blogs/</loc>
+  </url>
+  
+  <url>
+    <loc>https://maopeng0714.github.io/categories/</loc>
+  </url>
+  
+  <url>
+    <loc>https://maopeng0714.github.io/tags/</loc>
+  </url>
+  
+</urlset>

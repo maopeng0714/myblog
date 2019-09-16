@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Peng Mao&#39;s Blog</title>
+    <link>https://maopeng0714.github.io/</link>
+    <description>Recent content on Peng Mao&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 16 Sep 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://maopeng0714.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Kanban Introduction</title>
+      <link>https://maopeng0714.github.io/posts/kanban/</link>
+      <pubDate>Mon, 16 Sep 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://maopeng0714.github.io/posts/kanban/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Avro  with  Kafka Introduction</title>
+      <link>https://maopeng0714.github.io/posts/avro-kafka/</link>
+      <pubDate>Thu, 12 Sep 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://maopeng0714.github.io/posts/avro-kafka/</guid>
+      <description>Ref: https://www.confluent.io/blog/avro-kafka-data/
+What is Avro Avro is an open source data serialization system that helps with data exchange between systems, programming languages, and processing frameworks. &amp;lt;\br&amp;gt; Avro helps define a binary format for your data, as well as map it to the programming language of your choice. &amp;lt;\br&amp;gt;
+Why Use Avro with Kafka Avro has a JSON like data model, but can be represented as either JSON or in a compact binary form.</description>
+    </item>
+    
+    <item>
+      <title>About</title>
+      <link>https://maopeng0714.github.io/about/</link>
+      <pubDate>Fri, 25 Jan 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://maopeng0714.github.io/about/</guid>
+      <description>学习笔记 大家好，
+这是我的个人博客，主要用来收集和记录在学习过程中发现的对我有帮助，也许对其他人也有价值的内容。 有些是从引用网络上其他人的blog，有些是原创内容，引用内容都有引用链接。
+enjoy！
+谢谢， 毛鹏</description>
+    </item>
+    
+    <item>
+      <title>Blogs</title>
+      <link>https://maopeng0714.github.io/blogs/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://maopeng0714.github.io/blogs/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>
