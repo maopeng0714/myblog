@@ -1,10 +1,16 @@
++++
+title = "Avro  with  Kafka Introduction"
+date = "2019-09-12"
++++
 
-### What is Avro?
+Ref: https://www.confluent.io/blog/avro-kafka-data/
 
-Avro is an open source data serialization system that helps with data exchange between systems, programming languages, and processing frameworks. <br>
-Avro helps define a binary format for your data, as well as map it to the programming language of your choice. <br>
+### What is Avro
 
-### Why Use Avro with Kafka?
+Avro is an open source data serialization system that helps with data exchange between systems, programming languages, and processing frameworks. <\br>
+Avro helps define a binary format for your data, as well as map it to the programming language of your choice. <\br>
+
+### Why Use Avro with Kafka
 
 Avro has a JSON like data model, but can be represented as either JSON or in a compact binary form. It comes with a very sophisticated schema description language that describes data.
 
@@ -18,7 +24,8 @@ We think Avro is the best choice for a number of reasons:
 - It has the best notion of compatibility for evolving your data over time.
 
 One of the critical features of Avro is the ability to define a schema for your data. For example an event that represents the sale of a product might look like this:
-```
+
+``` json
 {
   "time": 1424849130111,
   "customer_id": 1234,
@@ -30,7 +37,7 @@ One of the critical features of Avro is the ability to define a schema for your 
 
 It might have a schema like this that defines these five fields:
 
-```
+``` json
 {
   "type": "record",
   "doc":"This event records the sale of a product",
@@ -42,7 +49,7 @@ It might have a schema like this that defines these five fields:
     {"name":"quantity", "type":"int"},
     {"name":"payment",
      "type":{"type":"enum",
-	     "name":"payment_types",
+	           "name":"payment_types",
              "symbols":["cash","mastercard","visa"]},
      "doc":"The method of payment"}
   ]
@@ -50,7 +57,6 @@ It might have a schema like this that defines these five fields:
 ```
 
 A real event, of course, would probably have more fields and hopefully better doc strings, but this gives their flavor.
-
 
 ### Effective Avro
 

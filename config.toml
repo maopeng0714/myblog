@@ -1,0 +1,49 @@
+baseurl = "https://www.pengmao.net"
+languageCode = "en-us"
+theme = "hello-friend"
+paginate = 5
+
+[params]
+  # dir name of your blog content (default is `content/posts`)
+  contentTypeName = "posts"
+  # "light" or "dark"
+  defaultTheme = "dark"
+  # if you set this to 0, only submenu trigger will be visible
+  showMenuItems = 3
+  # Show reading time in minutes for posts
+  showReadingTime = true
+  disqusShortname = "weizhishu"
+
+[languages]
+  [languages.en]
+    title = "Peng Mao's Blog"
+    subtitle = "collection and records of learn path"
+    keywords = ""
+    copyright = ""
+    menuMore = "Show more"
+    writtenBy = "Write by"
+    readMore = "Read more"
+    readOtherPosts = "Read other posts"
+    newerPosts = "Newer posts"
+    olderPosts = "Older posts"
+    minuteReadingTime = "min read"
+    dateFormatSingle = "2006-01-02"
+    dateFormatList = "2006-01-02"
+
+    [languages.en.params.logo]
+      logoText = "hello friend"
+      logoHomeLink = "/img/hello.jpg"
+    # or
+    #
+    # path = "/img/your-example-logo.svg"
+    # alt = "Your example logo alt text"
+
+    [languages.en.menu]
+      [[languages.en.menu.main]]
+        identifier = "about"
+        name = "About"
+        url = "/about"
+      [[languages.en.menu.main]]
+        identifier = "blogs"
+        name = "Blogs"
+        url = "/blogs"
