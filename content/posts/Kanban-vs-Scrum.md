@@ -2,6 +2,7 @@
 title = "Kanban 与 Scrum 孰优孰劣"
 date = "2019-09-18"
 author = "Peng Mao"
+description = "比较了Scrum和Kanban方法的异同，以及各自适用的场景"
 +++
 
 许多 Scrum 团队还使用看板作为可视化流程和项目管理工具。虽然有些团队更喜欢仅使用 Scrum，因为它具有规范性（模糊性较低），但许多 Scrum 团队采用了看板的选择原则， 这些原则 对于为项目添加额外的可见性层非常有用。在 Kanban 或 Scrum 之间进行选择时，并不总是需要进行个体区分，因为看板和 Scrum 可以齐头并进。
