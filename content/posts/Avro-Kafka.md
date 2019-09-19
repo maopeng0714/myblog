@@ -1,9 +1,8 @@
 +++
 title = "Avro  with  Kafka Introduction"
 date = "2019-09-12"
+description = "introduce the avro schema for design kafka message format"
 +++
-
-Ref: https://www.confluent.io/blog/avro-kafka-data/
 
 ### What is Avro
 
@@ -70,3 +69,5 @@ Here are some recommendations specific to Avro:
 - Require documentation for all fields. Even seemingly obvious fields often have non-obvious details. Try to get them all written down in the schema so that anyone who needs to really understand the meaning of the field need not go any further.
 - Avoid non-trivial union types and recursive types. These are Avro features that map poorly to most other systems. Since our goal is an intermediate format that maps well to other systems we want to avoid any overly advanced features.
 - Enforce reasonable schema and field naming conventions. Since these schemas will map into Hadoop having common fields like customer_id named the same across events will be very helpful in making sure that joins between these are easy to do. A reasonable scheme might be something like PageViewEvent, OrderEvent, ApplicationBounceEvent, etc.
+
+Reference: https://www.confluent.io/blog/avro-kafka-data
