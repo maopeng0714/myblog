@@ -25,33 +25,37 @@ We think Avro is the best choice for a number of reasons:
 
 One of the critical features of Avro is the ability to define a schema for your data. For example an event that represents the sale of a product might look like this:
 
-``` json
+```json
 {
   "time": 1424849130111,
   "customer_id": 1234,
   "product_id": 5678,
-  "quantity":3,
+  "quantity": 3,
   "payment_type": "mastercard"
 }
 ```
 
 It might have a schema like this that defines these five fields:
 
-``` json
+```json
 {
   "type": "record",
-  "doc":"This event records the sale of a product",
+  "doc": "This event records the sale of a product",
   "name": "ProductSaleEvent",
-  "fields" : [
-    {"name":"time", "type":"long", "doc":"The time of the purchase"},
-    {"name":"customer_id", "type":"long", "doc":"The customer"},
-    {"name":"product_id", "type":"long", "doc":"The product"},
-    {"name":"quantity", "type":"int"},
-    {"name":"payment",
-     "type":{"type":"enum",
-	           "name":"payment_types",
-             "symbols":["cash","mastercard","visa"]},
-     "doc":"The method of payment"}
+  "fields": [
+    { "name": "time", "type": "long", "doc": "The time of the purchase" },
+    { "name": "customer_id", "type": "long", "doc": "The customer" },
+    { "name": "product_id", "type": "long", "doc": "The product" },
+    { "name": "quantity", "type": "int" },
+    {
+      "name": "payment",
+      "type": {
+        "type": "enum",
+        "name": "payment_types",
+        "symbols": ["cash", "mastercard", "visa"]
+      },
+      "doc": "The method of payment"
+    }
   ]
 }
 ```
