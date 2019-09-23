@@ -35,6 +35,18 @@ Scrum 和 Kanban 都是迭代工作方法，依赖于流程，旨在减少浪费
 
 Scrum 是一种迭代的增量工作方法，它提供了一种高度规范的工作方式。Scrum 团队定义了流程，角色，仪式和工件。工作分为 Sprint，或设定必须在下一个 Sprint 开始之前完成工作的时间。冲刺可以是任何时间长度，尽管最常见的是两周和 30 天冲刺。Scrum 状态更新和优先级会议由 Scrum Masters 领导。Scrum Master 是 Scrum 团队中的一员，负责确保团队按照 Scrum 设定的标准生活。
 
+#### Scrum Sprints
+
+![Sprint 流程图](/img/agile-workflow.png)
+
+#### SCRUM 开发流程
+
+![Scrum 开发](/img/scrum_process.png)
+
 看板可以定制，以适应您的团队和/或公司已有的流程和工作系统。一旦基于敏捷原则采用或开发了一种工作方法，您的团队就可以开始使用诸如看板和项目预测工具之类的敏捷工具来帮助以最适合每个人的方式管理项目，工作流和流程。
+
+#### Kanban 开发流程
+
+![Kanban 开发](/img/kanban_dev_process.png)
 
 参考来源: https://leankit.com/learn/kanban/kanban-vs-scrum/
