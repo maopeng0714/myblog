@@ -206,7 +206,7 @@ repo_gpgcheck=0
 gpgkey=http://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg  http://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
 EOF
 
-yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+yum install -y kubeadm-1.14.7-0 kubectl-1.14.7-0  kubelet-1.14.7-0  --setopt=obsoletes=0 --disableexcludes=kubernetes
 systemctl enable --now kubelet.service
 ```
 
@@ -217,13 +217,16 @@ systemctl enable --now kubelet.service
 ```bash
 docker info | grep -i cgroup
 
-vim /var/lib/kubelet/config.yaml
 vim /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
+
+vim /var/lib/kubelet/config.yaml
+
 vim /var/lib/kubelet/kubeadm-flags.env
+KUBELET_KUBEADM_ARGS="--cgroup-driver=systemd --network-plugin=cni --pod-infra-container-image=registry.cn-hangzhou.aliyuncs.com/google_containers/pause:3.1"
 
 更新为 cgroupDriver: systemd
 
-vim /etc/sysconfig/kubelet:
+vim /etc/sysconfig/kubelet
 KUBELET_EXTRA_ARGS= --runtime-cgroups=/systemd/system.slice --kubelet-cgroups=/systemd/system.slice
 
 systemctl daemon-reload
@@ -240,9 +243,10 @@ systemctl restart kubelet
 - 选项--pod-network-cidr=192.168.0.0/16表示集群将使用Calico网络，这里需要提前指定Calico的子网范围
 - 选项--apiserver-advertise-address表示绑定的网卡IP，这里一定要绑定前面提到的enp0s8网卡，否则会默认使用enp0s3网卡
 - 选项--image-repository，指定一个可用的仓库
+- 选项--kubernetes-version=v1.10.0指定K8S版本
 
 ```bash
-kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=192.168.31.91 --image-repository registry.cn-hangzhou.aliyuncs.com/google_containers
+kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=192.168.31.91 --image-repository registry.cn-hangzhou.aliyuncs.com/google_containers --kubernetes-version=v1.14.7
 ```
 
 若执行kubeadm init出错或强制终止，则再需要执行该命令时，需要先执行kubeadm reset重置。
@@ -263,6 +267,8 @@ kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=192
 // 使用Calico
 kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml
 
+//修改或更新ＡＰＩｓｅｒｖｅｒ配置
+vim /etc/kubernetes/manifests/kube-apiserver.yaml
 //将Master作为工作节点
 kubectl taint nodes --all node-role.kubernetes.io/master-
 ```
@@ -273,8 +279,8 @@ kubectl taint nodes --all node-role.kubernetes.io/master-
 
 ```bash
 //token２４ｈ　有效
-kubeadm join 192.168.31.91:6443 --token 9mwhs6.a51z8xla1x6zk32w \
-    --discovery-token-ca-cert-hash sha256:be34bd6bc24000e07cd9cf3f38a07b765b3a01bb573da54f66d03cd78a8c661f 
+kubeadm join 192.168.31.91:6443 --token 41aso1.p548va8rsw0pllbh \
+    --discovery-token-ca-cert-hash sha256:085c73c1bcb5be1fc9c4d399c7aeaa105266e9f1510a62d36d783b349793ec8c
 ```
 
 - 重新生成 token 并加入
