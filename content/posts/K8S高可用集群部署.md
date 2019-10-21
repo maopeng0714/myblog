@@ -79,8 +79,10 @@ description = "详细讲解怎么在自己的电脑上搭建起利用HAPROXY+KEE
         NAME="enp0s3"
         DEVICE="enp0s3"
         ONBOOT="yes"
-        IPADDR="192.168.56.10"
+        IPADDR="10.0.2.10"
         NETMASK="255.255.255.0"
+        GATEWAY="10.0.2.1"
+
     ```
 
 - 编辑 /etc/resolve.conf文件(配置DNS解析)
@@ -279,26 +281,36 @@ systemctl restart kubelet
 将Master虚拟机复制两份，一个修改hostname 为kube-node1, 另一个为kube-node2.
 修改上面指定的的固定IP地址，防止冲突。
 
-### 高可用集群部署方案之HAPROXY+Keepalived
+### 高可用集群部署
 
-本次部署一个两节点高可用 haproxy+keepalived 集群，和Master节点部署在一起，分别为：192.168.56.10、192.168.56.11。计划使用VIP 地址 192.168.56.33
+配置高可用（HA）Kubernetes集群，有以下两种可选的etcd拓扑：
+
+- 堆叠的etcd拓扑：集群master节点与etcd节点共存，etcd也运行在控制平面节点上
+- 外部etcd拓扑：使用外部etcd节点，etcd节点与master在不同节点上运行
+
+本次部署为了节省资源选择堆叠的etcd拓扑。
+并选择 haproxy+keepalived 作为负载均衡的方案，也安装在控制平面上。
+
+ＩＰ地址规划如下：
+
+- kube-master  10.0.2.10
+- kube-master2 10.0.2.11
+- kube-master3 10.0.2.12。
+
+VIP 地址 10.0.2.100
 
 #### 安装 haproxy+keepalived
 
 yum install -y haproxy keepalived
 
-注： 2台master的 haproxy+keepalived 节点都需安装
+注： ３台master的 haproxy+keepalived 节点都需安装
 
 #### 配置 keepalived
 
-节点1:192.168.56.10
+router_id和virtual_router_id 用于标识属于该 HA 的 keepalived 实例，所有节点的值必须一致；
+backup的priority 的值必须小于 master 的值；
 
-VIP 所在的接口（interface ${VIP_IF}）为 enp0s3；
-使用 killall -0 haproxy 命令检查所在节点的 haproxy 进程是否正常。如果异常则将权重减少（-30）,从而触发重新选主过程；
-router_id、virtual_router_id 用于标识属于该 HA 的 keepalived 实例，如果有多套 keepalived HA，则必须各不相同；
-priority 的值必须小于 master 的值；
-
-```bash
+```　bash
 
 vim /etc/keepalived/keepalived.conf
 
@@ -306,7 +318,6 @@ vim /etc/keepalived/keepalived.conf
 
 global_defs {
    router_id LVS_DEVEL
-   vrrp_skip_check_adv_addr
 }
 
 vrrp_instance VI_1 {
@@ -316,13 +327,13 @@ vrrp_instance VI_1 {
     priority 100
     advert_int 1
     virtual_ipaddress {
-        192.168.56.33
+        10.0.2.100
     }
 }
 
 ```
 
-keepalived配置文件基本一样，除了state，主节点配置为MASTER，备节点配置BACKUP，优化级参数priority，主节点设置最高，备节点依次递减
+其他主节点的keepalived配置文件基本一样，除了state，主节点配置为MASTER，备节点配置BACKUP，优化级参数priority，主节点设置最高，备节点依次递减。
 
 #### 配置 haproxy
 
@@ -370,8 +381,8 @@ frontend k8s-https
 backend k8s-https
   mode tcp
   balance roundrobin
-  server kube-master  192.168.56.10:6443 weight 1 maxconn 1000 check inter 2000 rise 2 fall 3
-  server kube-master2 192.168.56.11:6443 weight 1 maxconn 1000 check inter 2000 rise 2 fall 3
+  server kube-master  10.0.2.10:6443 weight 1 maxconn 1000 check inter 2000 rise 2 fall 3
+  server kube-master2 10.0.2.11:6443 weight 1 maxconn 1000 check inter 2000 rise 2 fall 3
 
 ```
 
@@ -406,7 +417,7 @@ bootstrapTokens:
   - authentication
 kind: InitConfiguration
 localAPIEndpoint:
-  advertiseAddress: 192.168.56.10
+  advertiseAddress: 10.0.2.10
   bindPort: 6443
 nodeRegistration:
   criSocket: /var/run/dockershim.sock
@@ -420,7 +431,7 @@ apiServer:
 apiVersion: kubeadm.k8s.io/v1beta1
 certificatesDir: /etc/kubernetes/pki
 clusterName: kubernetes
-controlPlaneEndpoint: "192.168.56.33:8443"
+controlPlaneEndpoint: "10.0.2.100:8443"
 controllerManager: {}
 dns:
   type: CoreDNS
@@ -444,11 +455,10 @@ mode: ipvs
 
 ```
 
-#### 初始化高可用集群
+#### 初始化第一个主节点
 
-初始化第一个主节点：
-
-kubeadm init --config=kubeadm-config.yaml --experimental-upload-certs
+```bash
+kubeadm init --config=kubeadm-config-default.yaml --experimental-upload-certs
 
   mkdir -p $HOME/.kube
   sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
@@ -458,19 +468,201 @@ cat << EOF >> ~/.bashrc
 export KUBECONFIG=/etc/kubernetes/admin.conf
 EOF
 source ~/.bashrc
+```
 
-初始化其他主节点：
+#### 初始化Calico网络
 
-kubeadm join 192.168.56.33:8443 --token abcdef.0123456789abcdef \
+```bash
+kubectl apply -f calico.yaml 
+
+修改Calico.yml保证如下几个选项：
+
+  # Disable IPIP
+  - name: CALICO_IPV4POOL_IPIP
+    value: "off"
+  # IP POOL
+  - name: CALICO_IPV4POOL_CIDR
+    value: "192.168.0.0/16"
+  # specify the NAT network card instead of the hostonly network card 
+  - name: IP_AUTODETECTION_METHOD
+    value: "interface=enp0s3"
+```
+
+#### 初始化其他主节点
+
+```bash
+kubeadm join 10.0.2.100:8443 --token abcdef.0123456789abcdef \
     --discovery-token-ca-cert-hash sha256:e8f36e9f3092aad715913b0eaa6196ece15c57a98db740759332eabde220a03b \
     --experimental-control-plane --certificate-key 120e900b1611e82fd43b1bbfb68e8bcabfecbd06f419f06badc2a9cc98a6ab56
+```
 
-初始化工作节点：
+#### 初始化工作节点
 
-kubeadm join 192.168.56.33:8443 --token abcdef.0123456789abcdef \
+```bash
+kubeadm join 10.0.2.100:8443 --token abcdef.0123456789abcdef \
     --discovery-token-ca-cert-hash sha256:e8f36e9f3092aad715913b0eaa6196ece15c57a98db740759332eabde220a03b
+```
 
-将kubeconfig配置SCP到其他所有节点：
+#### 将kubeconfig配置SCP到其他所有节点
+
+```bash
 scp /root/.kube/config   root@kube-master2:/root/.kube/config
 scp /root/.kube/config   root@kube-node1:/root/.kube/config
 scp /root/.kube/config   root@kube-node2:/root/.kube/
+```
+
+### 安装Metrics Server
+
+1. 在master节点上，下载metric-server
+
+git clone https://github.com/kubernetes-incubator/metrics-server.git
+
+2. 修改metrics-server/deploy/1.8+/metrics-server-deployment.yaml(一定要修改，源码有错误！！！)
+
+```bash
+vim metrics-server/deploy/1.8+/metrics-server-deployment.yaml
+//添加
+command:
+        - /metrics-server
+        - --kubelet-insecure-tls
+        - --kubelet-preferred-address-types=InternalIP 
+//修改
+imagePullPolicy: IfNotPresent
+```
+
+3. 下载镜像并修改名字
+
+```bash
+#docker pull mirrorgooglecontainers/metrics-server-amd64:v0.3.1
+
+#docker tag   mirrorgooglecontainers/metrics-server-amd64:v0.3.1 k8s.gcr.io/metrics-server-amd64:v0.3.1
+```
+
+4. 安装Metrics Server
+
+``` bash
+#kubectl apply -f metrics-server/deploy/1.8+/
+```
+
+5. 验证正常工作
+
+``` bash
+#kubectl top nodes
+#kubectl top pods
+#kubectl get hpa
+```
+
+### 安装配置Dashboard
+
+- 创建安全链接串
+
+``` bash
+cd certs/
+openssl genrsa -des3 -passout pass:x -out dashboard.pass.key 2048
+openssl rsa -passin pass:x -in dashboard.pass.key -out dashboard.key
+# Writing RSA key
+rm dashboard.pass.key
+openssl req -new -key dashboard.key -out dashboard.csr
+openssl x509 -req -sha256 -days 365 -in dashboard.csr -signkey dashboard.key -out dashboard.crt
+
+kubectl create secret generic kubernetes-dashboard-certs --from-file=$HOME/certs -n kubernetes-dashboard
+```
+
+- 定制Dashboard权限
+
+下载https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-beta5/aio/deploy/recommended.yaml，并编辑修改。
+
+``` bash
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubernetes-dashboard
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: kubernetes-dashboard
+    namespace: kube-system
+```
+
+- 安装Dashboard
+
+    kubectl create -f recommended.yaml
+
+- 创建用户
+
+``` bash
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kube-system
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kube-system
+
+kubectl apply -f admin-user-user.yaml
+
+```
+
+- 获取token
+kubectl -n kube-system get sa | grep admin-user
+kubectl describe secrets/admin-user-token-n7grp -n kube-system
+
+``` bash
+Name:         admin-user-token-n7grp
+Namespace:    kube-system
+Labels:       <none>
+Annotations:  kubernetes.io/service-account.name: admin-user
+              kubernetes.io/service-account.uid: 38b70ad4-f227-11e9-84c3-08002790da0d
+
+Type:  kubernetes.io/service-account-token
+
+Data
+====
+ca.crt:     1025 bytes
+namespace:  11 bytes
+token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJhZG1pbi11c2VyLXRva2VuLW43Z3JwIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6ImFkbWluLXVzZXIiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC51aWQiOiIzOGI3MGFkNC1mMjI3LTExZTktODRjMy0wODAwMjc5MGRhMGQiLCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6a3ViZS1zeXN0ZW06YWRtaW4tdXNlciJ9.t9mOEiRSCzPxsVrirTitP9lpta2ujOkVHYHh06-dl8yjubgqxa1d8oDJASZXlbXM1WjXl2K93Q7OCH7rLmklhCRGXtNEEjvCUaWYm4haP8jZFqujQ6XtGiQ7aExPaoshVMwT7lttrZT1ZwZ93RXdaZyPd-QMkiBOkdt47J8Q6MG7rbmPTjzgmRa3KV3oY_ST_0h-Bb9FiMBCfr70wNB5Xj3W6kilKuabgnrNec3GscdwJrzxYY-y2YCd2wcjek49Wc9d8vp4CG4I5-ywWcLKgEXuYb4Ye3tBT3d0uUQdFgwuXPLpCq1h-RJTYmwJuld9-a4DPpOQJZHdnRkZcA4UgA
+```
+
+- 使用kubectl proxy启动DashBoard
+  
+  kubectl proxy --address='10.0.2.10' --disable-filter=true
+
+- 登录Dashboard
+在VirtualBox的全局设置里，NAT网络设置端口映射，把本机的9001端口映射到10.0.2.10的8001端口。
+在本机输入URL：
+http://localhost:9001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/clusterrole?namespace=default
+
+### 安装Ingress Istio
+
+下载istio： https://istio.io/docs/setup/#downloading-the-release
+切换到istio目录下面:
+
+for i in install/kubernetes/helm/istio-init/files/crd*yaml; do kubectl apply -f $i; done
+kubectl apply -f install/kubernetes/istio-demo-auth.yaml
+
+验证Istio安装：
+kubectl get svc -n istio-system
+kubectl get pods -n istio-system
+
+给Namespace打标签，这样每次部署自动的就会注入Envoy Sidecar。
+kubectl label namespace <namespace> istio-injection=enabled
+kubectl create -n <namespace> -f <your-app-spec>.yaml
+
